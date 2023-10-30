@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsProperties.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -50,10 +51,11 @@ class ProductListActivity : ComponentActivity() {
                     viewModel.addProduct(product)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                ProductList(products)
+                ProductList(products, viewModel::updateProduct, viewModel::deleteProduct)
             }
         }
     }
+
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -74,7 +76,11 @@ class ProductListActivity : ComponentActivity() {
 
             TextField(
                 value = productPrice,
-                onValueChange = { productPrice = it },
+                onValueChange = {
+                    if (it.count { char -> char == '.' } <= 1 && it.all { char -> char.isDigit() || char == '.' }) {
+                        productPrice = it
+                    }
+                },
                 label = { Text("Cena produktu") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
@@ -84,7 +90,11 @@ class ProductListActivity : ComponentActivity() {
 
             TextField(
                 value = productQuantity,
-                onValueChange = { productQuantity = it },
+                onValueChange = {
+                    if (it.all { char -> char.isDigit() }) {
+                        productQuantity = it
+                    }
+                },
                 label = { Text("Ilość produktu") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
@@ -108,29 +118,81 @@ class ProductListActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ProductList(products: List<Product>) {
+    fun ProductList(products: List<Product>, onProductUpdate: (Product) -> Unit, onProductDelete: (Product) -> Unit) {
         LazyColumn {
             items(products) { product ->
-                ProductItem(product)
+                ProductItem(product, onProductUpdate, onProductDelete)
             }
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun ProductItem(product: Product) {
+    fun ProductItem(product: Product, onProductUpdate: (Product) -> Unit, onProductDelete: (Product) -> Unit) {
+        var updatedName by remember { mutableStateOf(product.name) }
+        var updatedPrice by remember { mutableStateOf(product.price.toString()) }
+        var updatedQuantity by remember { mutableStateOf(product.quantity.toString()) }
+        var isChecked by remember { mutableStateOf(product.isPurchased) }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = product.name)
-            Text(text = product.price.toString())
-            Text(text = product.quantity.toString())
-            Checkbox(
-                checked = product.isPurchased,
-                onCheckedChange = null
+            Button(onClick = { onProductDelete(product) }) {
+                Text("Usuń")
+            }
+
+            TextField(
+                value = updatedName,
+                onValueChange = { updatedName = it
+                    onProductUpdate(product.copy(name = updatedName))
+                },
+                modifier = Modifier.weight(1f)
             )
+
+            TextField(
+                value = updatedPrice,
+                onValueChange = {
+                    if (it.count { char -> char == '.' } <= 1 && it.all { char -> char.isDigit() || char == '.' }) {
+                        updatedPrice = it
+                        if (updatedPrice.toDoubleOrNull() != null) {
+                            onProductUpdate(product.copy(price = updatedPrice.toDouble()))
+                        }
+                    }
+                },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            TextField(
+                value = updatedQuantity,
+                onValueChange = {
+                    if (it.all { char -> char.isDigit() }) {
+                        updatedQuantity = it
+                        if (updatedQuantity.toIntOrNull() != null) {
+                            onProductUpdate(product.copy(quantity = updatedQuantity.toInt()))
+                        }
+                    }
+                },
+                modifier = Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            Checkbox(
+                checked = isChecked,
+                onCheckedChange = {
+                    isChecked = it
+                    onProductUpdate(product.copy(name = updatedName, price = updatedPrice.toDouble(), quantity = updatedQuantity.toInt(), isPurchased = isChecked))
+                }
+            )
+
+
         }
     }
+
+
+
 }
+

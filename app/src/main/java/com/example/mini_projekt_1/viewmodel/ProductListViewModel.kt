@@ -29,4 +29,5 @@ class ProductListViewModel(application: Application) : AndroidViewModel(applicat
     fun deleteProduct(product: Product) = viewModelScope.launch {
         db.productDao().deleteProduct(product)
     }
+
 }
