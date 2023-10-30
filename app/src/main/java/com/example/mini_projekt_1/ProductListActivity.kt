@@ -1,26 +1,29 @@
 package com.example.mini_projekt_1
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -28,14 +31,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.SemanticsProperties.ImeAction
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
-import com.example.mini_projekt_1.models.Product
+import com.example.mini_projekt_1.model.Product
 import com.example.mini_projekt_1.viewmodel.ProductListViewModel
 
 class ProductListActivity : ComponentActivity() {
+
+    private val preferences: SharedPreferences by lazy {
+        getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+    }
+
     private lateinit var viewModel: ProductListViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,14 +54,35 @@ class ProductListActivity : ComponentActivity() {
         viewModel = ViewModelProvider(this).get(ProductListViewModel::class.java)
 
         setContent {
-            val products = viewModel.products.collectAsState(initial = emptyList()).value
-            Column {
-                ProductAddForm { product ->
-                    // Dodaj produkt do ViewModel
-                    viewModel.addProduct(product)
+            val fontSize by remember { mutableStateOf(getOption("font_size", "small")) }
+            val bgColor by remember { mutableStateOf(getOption("background_color", "white")) }
+
+            val finalFontSize = when (fontSize) {
+                "small" -> 14.sp
+                else -> 20.sp
+            }
+
+            val finalBgColor = when (bgColor) {
+                "white" -> Color.White
+                else -> Color.Gray
+            }
+            CompositionLocalProvider(
+                LocalAppFontSize provides finalFontSize,
+                LocalAppBackgroundColor provides finalBgColor
+            ) {
+                val products = viewModel.products.collectAsState(initial = emptyList()).value
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = LocalAppBackgroundColor.current)
+                        .padding(16.dp)
+                ) {
+                    ProductAddForm { product ->
+                        viewModel.addProduct(product)
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    ProductList(products, viewModel::updateProduct, viewModel::deleteProduct)
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                ProductList(products, viewModel::updateProduct, viewModel::deleteProduct)
             }
         }
     }
@@ -69,7 +100,8 @@ class ProductListActivity : ComponentActivity() {
                 value = productName,
                 onValueChange = { productName = it },
                 label = { Text("Nazwa produktu") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(fontSize = LocalAppFontSize.current),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -83,7 +115,8 @@ class ProductListActivity : ComponentActivity() {
                 },
                 label = { Text("Cena produktu") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(fontSize = LocalAppFontSize.current),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -97,7 +130,8 @@ class ProductListActivity : ComponentActivity() {
                 },
                 label = { Text("Ilość produktu") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(fontSize = LocalAppFontSize.current),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -112,7 +146,7 @@ class ProductListActivity : ComponentActivity() {
                     )
                 )
             }) {
-                Text("Dodaj")
+                Text("Dodaj", fontSize = LocalAppFontSize.current)
             }
         }
     }
@@ -136,12 +170,12 @@ class ProductListActivity : ComponentActivity() {
 
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Button(onClick = { onProductDelete(product) }) {
-                Text("Usuń")
+                Text("x", fontSize = LocalAppFontSize.current)
             }
 
             TextField(
@@ -149,7 +183,8 @@ class ProductListActivity : ComponentActivity() {
                 onValueChange = { updatedName = it
                     onProductUpdate(product.copy(name = updatedName))
                 },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                textStyle = TextStyle(fontSize = LocalAppFontSize.current),
             )
 
             TextField(
@@ -163,7 +198,8 @@ class ProductListActivity : ComponentActivity() {
                     }
                 },
                 modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                textStyle = TextStyle(fontSize = LocalAppFontSize.current),
             )
 
             TextField(
@@ -177,7 +213,8 @@ class ProductListActivity : ComponentActivity() {
                     }
                 },
                 modifier = Modifier.weight(1f),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                textStyle = TextStyle(fontSize = LocalAppFontSize.current),
             )
 
             Checkbox(
@@ -192,7 +229,6 @@ class ProductListActivity : ComponentActivity() {
         }
     }
 
-
-
+    fun getOption(key: String, default: String): String = preferences.getString(key, default) ?: default
 }
 

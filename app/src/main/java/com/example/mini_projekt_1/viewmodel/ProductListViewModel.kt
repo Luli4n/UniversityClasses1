@@ -2,11 +2,10 @@ package com.example.mini_projekt_1.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import com.example.mini_projekt_1.database.AppDatabase
-import com.example.mini_projekt_1.models.Product
+import com.example.mini_projekt_1.model.Product
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
