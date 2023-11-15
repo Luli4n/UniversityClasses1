@@ -1,6 +1,8 @@
 package com.example.mini_projekt_1
 
+
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -137,24 +139,35 @@ class ProductListActivity : ComponentActivity() {
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(onClick = {
-                onAddProduct(
-                    Product(
-                        name = productName,
-                        price = productPrice.toDouble(),
-                        quantity = productQuantity.toInt(),
-                        isPurchased = false
-                    )
+                val newProduct = Product(
+                    name = productName,
+                    price = productPrice.toDouble(),
+                    quantity = productQuantity.toInt(),
+                    isPurchased = false
                 )
+                onAddProduct(newProduct)
+                sendProductAddedBroadcast(newProduct)
             }) {
                 Text("Dodaj", fontSize = LocalAppFontSize.current)
             }
         }
     }
 
+    private fun sendProductAddedBroadcast(product: Product) {
+        val intent = Intent("com.example.mini_projekt_1.ACTION_PRODUCT_ADDED")
+        intent.flags = Intent.FLAG_INCLUDE_STOPPED_PACKAGES
+
+        intent.putExtra("productName", product.name)
+        intent.putExtra("productPrice", product.price)
+        intent.putExtra("productQuantity", product.quantity)
+
+        sendBroadcast(intent)//, "com.example.mini_projekt_1.MY_INTENT_PERMISSION")
+    }
+
     @Composable
     fun ProductList(products: List<Product>, onProductUpdate: (Product) -> Unit, onProductDelete: (Product) -> Unit) {
         LazyColumn {
-            items(products) { product ->
+            items(products, key = { product -> product.id }) { product ->
                 ProductItem(product, onProductUpdate, onProductDelete)
             }
         }
