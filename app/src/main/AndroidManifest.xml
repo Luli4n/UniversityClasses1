@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="com.example.mini_projekt_1.MY_INTENT_PERMISSION" />
     <permission android:name="com.example.mini_projekt_1.MY_INTENT_PERMISSION"/>
 
     <application

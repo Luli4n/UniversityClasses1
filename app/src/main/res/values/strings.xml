@@ -2,4 +2,5 @@
     <string name="app_name">mini-projekt-1</string>
     <string name="go_to_product_list">Lista produktów</string>
     <string name="go_to_options">Opcje</string>
+    <string name="my_intent_permission">com.example.mini_projekt_1.MY_INTENT_PERMISSION</string>
 </resources>

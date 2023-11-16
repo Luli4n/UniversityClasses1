@@ -1,6 +1,5 @@
 package com.example.mini_projekt_1
 
-
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -42,7 +41,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModelProvider
 import com.example.mini_projekt_1.model.Product
 import com.example.mini_projekt_1.viewmodel.ProductListViewModel
-
 
 class ProductListActivity : ComponentActivity() {
 
@@ -164,7 +162,7 @@ class ProductListActivity : ComponentActivity() {
         intent.putExtra("productQuantity", product.quantity)
         intent.component = ComponentName("com.example.miniprojekt2_receiver", "com.example.miniprojekt2_receiver.ProductBroadcastReceiver")
 
-        sendBroadcast(intent)//, "com.example.mini_projekt_1.MY_INTENT_PERMISSION")
+        sendBroadcast(intent, "com.example.mini_projekt_1.MY_INTENT_PERMISSION")
     }
 
     @Composable
